@@ -16,12 +16,14 @@ import {
   CreditCard,
   Briefcase,
   IdentificationBadge,
+  Translate,
 } from "@phosphor-icons/react"
 import {
   generateAddress,
   US_STATES,
   type GeneratedAddress,
 } from "@/lib/address-generator"
+import { t, type Locale } from "@/lib/i18n"
 
 const NUNITO = { fontFamily: "Nunito, sans-serif" }
 
@@ -119,10 +121,26 @@ function ClaySeparator() {
   return <div className="mx-4 my-2 h-px bg-gradient-to-r from-transparent via-clay-accent/10 to-transparent" />
 }
 
+function LangToggle({ locale, onChange }: { locale: Locale; onChange: (l: Locale) => void }) {
+  const next = locale === "en" ? "zh" : "en"
+  const label = locale === "en" ? "中文" : "EN"
+  return (
+    <button
+      onClick={() => onChange(next)}
+      className="inline-flex items-center gap-1.5 h-10 px-4 rounded-full bg-white/70 text-clay-foreground text-sm font-bold tracking-wide shadow-clay-select transition-all duration-200 hover:-translate-y-0.5 hover:shadow-clay-card active:scale-[0.92] active:shadow-clay-pressed cursor-pointer backdrop-blur-sm"
+      style={NUNITO}
+    >
+      <Translate size={16} weight="bold" className="text-clay-accent" />
+      {label}
+    </button>
+  )
+}
+
 export function AddressCard() {
   const [address, setAddress] = useState<GeneratedAddress>(() => generateAddress())
   const [selectedState, setSelectedState] = useState<string>("")
   const [copiedField, setCopiedField] = useState<string | null>(null)
+  const [locale, setLocale] = useState<Locale>("en")
 
   const regenerate = useCallback(() => {
     setAddress(generateAddress(selectedState || undefined))
@@ -162,6 +180,11 @@ export function AddressCard() {
       </div>
 
       <div className="relative z-10 mx-auto max-w-2xl">
+        {/* Lang Toggle */}
+        <div className="flex justify-end mb-4">
+          <LangToggle locale={locale} onChange={setLocale} />
+        </div>
+
         {/* Hero Header */}
         <div className="mb-10 sm:mb-14 text-center">
           <div className="inline-flex items-center gap-3 mb-4">
@@ -174,13 +197,13 @@ export function AddressCard() {
             style={NUNITO}
           >
             <span className="bg-gradient-to-r from-clay-foreground via-clay-accent to-clay-accent-alt bg-clip-text text-transparent">
-              US Address
+              {t(locale, "title1")}
             </span>
             <br />
-            Generator
+            {t(locale, "title2")}
           </h1>
           <p className="text-clay-muted text-base sm:text-lg font-medium leading-relaxed max-w-md mx-auto">
-            Generate realistic US addresses and identity information instantly
+            {t(locale, "subtitle")}
           </p>
         </div>
 
@@ -192,10 +215,10 @@ export function AddressCard() {
               onValueChange={(val) => setSelectedState(val as string)}
             >
               <SelectTrigger className="w-full h-14 rounded-[20px] border-0 bg-[#EFEBF5] px-5 text-base font-medium shadow-clay-pressed transition-all duration-200 focus:bg-white focus:ring-4 focus:ring-clay-accent/20 [&_svg]:text-clay-muted">
-                <SelectValue placeholder="All States (Random)" />
+                <SelectValue placeholder={t(locale, "allStates")} />
               </SelectTrigger>
               <SelectContent className="rounded-[20px] shadow-clay-card border-0 bg-white/90 backdrop-blur-xl">
-                <SelectItem value="">All States (Random)</SelectItem>
+                <SelectItem value="">{t(locale, "allStates")}</SelectItem>
                 {US_STATES.map((s) => (
                   <SelectItem key={s.abbr} value={s.abbr}>
                     {s.name} ({s.abbr})
@@ -212,7 +235,7 @@ export function AddressCard() {
               style={NUNITO}
             >
               <ArrowsClockwise size={18} weight="bold" />
-              Generate
+              {t(locale, "generate")}
             </button>
             <button
               onClick={copyAll}
@@ -222,12 +245,12 @@ export function AddressCard() {
               {copiedField === "__all__" ? (
                 <>
                   <Check size={18} weight="bold" className="text-clay-emerald" />
-                  Copied
+                  {t(locale, "copied")}
                 </>
               ) : (
                 <>
                   <Copy size={18} weight="bold" />
-                  Copy All
+                  {t(locale, "copyAll")}
                 </>
               )}
             </button>
@@ -239,77 +262,77 @@ export function AddressCard() {
           <ClayCard
             icon={<User size={20} weight="duotone" />}
             iconGradient="from-purple-400 to-purple-600"
-            title="Personal Information"
+            title={t(locale, "personalInfo")}
             badge={<ClayBadge>{address.gender}</ClayBadge>}
           >
-            <FieldRow label="Full Name" value={`${address.firstName} ${address.lastName}`} copiedField={copiedField} onCopy={copyField} />
-            <FieldRow label="Date of Birth" value={address.dateOfBirth} copiedField={copiedField} onCopy={copyField} />
-            <FieldRow label="SSN" value={address.ssn} copiedField={copiedField} onCopy={copyField} />
+            <FieldRow label={t(locale, "fullName")} value={`${address.firstName} ${address.lastName}`} copiedField={copiedField} onCopy={copyField} />
+            <FieldRow label={t(locale, "dateOfBirth")} value={address.dateOfBirth} copiedField={copiedField} onCopy={copyField} />
+            <FieldRow label={t(locale, "ssn")} value={address.ssn} copiedField={copiedField} onCopy={copyField} />
           </ClayCard>
 
           <ClayCard
             icon={<MapPin size={20} weight="duotone" />}
             iconGradient="from-blue-400 to-blue-600"
-            title="Address"
+            title={t(locale, "address")}
             badge={<ClayBadge variant="outline">{address.stateAbbr}</ClayBadge>}
           >
-            <FieldRow label="Street" value={address.street} copiedField={copiedField} onCopy={copyField} />
-            <FieldRow label="City" value={address.city} copiedField={copiedField} onCopy={copyField} />
-            <FieldRow label="State" value={`${address.state} (${address.stateAbbr})`} copiedField={copiedField} onCopy={copyField} />
-            <FieldRow label="ZIP Code" value={address.zipCode} copiedField={copiedField} onCopy={copyField} />
-            <FieldRow label="County" value={address.county} copiedField={copiedField} onCopy={copyField} />
+            <FieldRow label={t(locale, "street")} value={address.street} copiedField={copiedField} onCopy={copyField} />
+            <FieldRow label={t(locale, "city")} value={address.city} copiedField={copiedField} onCopy={copyField} />
+            <FieldRow label={t(locale, "state")} value={`${address.state} (${address.stateAbbr})`} copiedField={copiedField} onCopy={copyField} />
+            <FieldRow label={t(locale, "zipCode")} value={address.zipCode} copiedField={copiedField} onCopy={copyField} />
+            <FieldRow label={t(locale, "county")} value={address.county} copiedField={copiedField} onCopy={copyField} />
           </ClayCard>
 
           <ClayCard
             icon={<Phone size={20} weight="duotone" />}
             iconGradient="from-cyan-400 to-cyan-600"
-            title="Contact"
+            title={t(locale, "contact")}
           >
-            <FieldRow label="Phone" value={address.phone} copiedField={copiedField} onCopy={copyField} />
-            <FieldRow label="Email" value={address.email} copiedField={copiedField} onCopy={copyField} />
+            <FieldRow label={t(locale, "phone")} value={address.phone} copiedField={copiedField} onCopy={copyField} />
+            <FieldRow label={t(locale, "email")} value={address.email} copiedField={copiedField} onCopy={copyField} />
           </ClayCard>
 
           <ClayCard
             icon={<CreditCard size={20} weight="duotone" />}
             iconGradient="from-pink-400 to-pink-600"
-            title="Credit Card"
+            title={t(locale, "creditCard")}
             badge={<ClayBadge>{address.creditCardType}</ClayBadge>}
           >
-            <FieldRow label="Card Number" value={address.creditCardNumber} copiedField={copiedField} onCopy={copyField} />
-            <FieldRow label="CVV" value={address.cvv} copiedField={copiedField} onCopy={copyField} />
-            <FieldRow label="Expires" value={address.expirationDate} copiedField={copiedField} onCopy={copyField} />
+            <FieldRow label={t(locale, "cardNumber")} value={address.creditCardNumber} copiedField={copiedField} onCopy={copyField} />
+            <FieldRow label={t(locale, "cvv")} value={address.cvv} copiedField={copiedField} onCopy={copyField} />
+            <FieldRow label={t(locale, "expires")} value={address.expirationDate} copiedField={copiedField} onCopy={copyField} />
           </ClayCard>
 
           <ClayCard
             icon={<Briefcase size={20} weight="duotone" />}
             iconGradient="from-amber-400 to-amber-600"
-            title="Employment"
+            title={t(locale, "employment")}
             badge={<ClayBadge variant="outline">{address.employmentStatus}</ClayBadge>}
           >
-            <FieldRow label="Occupation" value={address.occupation} copiedField={copiedField} onCopy={copyField} />
-            <FieldRow label="Company" value={address.company} copiedField={copiedField} onCopy={copyField} />
-            <FieldRow label="Monthly Salary" value={address.monthlySalary} copiedField={copiedField} onCopy={copyField} />
+            <FieldRow label={t(locale, "occupation")} value={address.occupation} copiedField={copiedField} onCopy={copyField} />
+            <FieldRow label={t(locale, "company")} value={address.company} copiedField={copiedField} onCopy={copyField} />
+            <FieldRow label={t(locale, "monthlySalary")} value={address.monthlySalary} copiedField={copiedField} onCopy={copyField} />
           </ClayCard>
 
           <ClayCard
             icon={<IdentificationBadge size={20} weight="duotone" />}
             iconGradient="from-emerald-400 to-emerald-600"
-            title="Account & More"
+            title={t(locale, "accountMore")}
           >
-            <FieldRow label="Username" value={address.username} copiedField={copiedField} onCopy={copyField} />
-            <FieldRow label="Password" value={address.password} copiedField={copiedField} onCopy={copyField} />
+            <FieldRow label={t(locale, "username")} value={address.username} copiedField={copiedField} onCopy={copyField} />
+            <FieldRow label={t(locale, "password")} value={address.password} copiedField={copiedField} onCopy={copyField} />
             <ClaySeparator />
-            <FieldRow label="Height" value={address.height} copiedField={copiedField} onCopy={copyField} />
-            <FieldRow label="Weight" value={address.weight} copiedField={copiedField} onCopy={copyField} />
-            <FieldRow label="Blood Type" value={address.bloodType} copiedField={copiedField} onCopy={copyField} />
-            <FieldRow label="Education" value={address.education} copiedField={copiedField} onCopy={copyField} />
+            <FieldRow label={t(locale, "height")} value={address.height} copiedField={copiedField} onCopy={copyField} />
+            <FieldRow label={t(locale, "weight")} value={address.weight} copiedField={copiedField} onCopy={copyField} />
+            <FieldRow label={t(locale, "bloodType")} value={address.bloodType} copiedField={copiedField} onCopy={copyField} />
+            <FieldRow label={t(locale, "education")} value={address.education} copiedField={copiedField} onCopy={copyField} />
             <ClaySeparator />
             <FieldRow label="GUID" value={address.guid} copiedField={copiedField} onCopy={copyField} />
           </ClayCard>
         </div>
 
         <p className="mt-10 text-center text-sm text-clay-muted font-medium" style={NUNITO}>
-          All data is randomly generated and does not correspond to real individuals.
+          {t(locale, "disclaimer")}
         </p>
       </div>
     </div>
